@@ -101,9 +101,9 @@ public class AndroidConsole : EditorWindow
 
         EditorGUI.BeginDisabledGroup(_isConnected);
         {
-            if (GUILayout.Button("Restart server", GUILayout.Width(100), GUILayout.Height(20)))
+            if (GUILayout.Button("Kill server", GUILayout.Width(85), GUILayout.Height(20)))
             {
-                if(EditorUtility.DisplayDialog("Restart server", "Are you sure you want to restart the adb server?", "Yes", "No"))
+                if(EditorUtility.DisplayDialog("Restart server", "Are you sure you want to kill the adb server?", "Yes", "No"))
                 {
                     RestartServer();
                 }
@@ -164,11 +164,11 @@ public class AndroidConsole : EditorWindow
             if(adbPath == string.Empty) return;
             
             process.StartInfo.FileName = adbPath;
-            process.StartInfo.Arguments = "kill-server && start-server";
+            process.StartInfo.Arguments = "kill-server";
             process.StartInfo.CreateNoWindow = true;
             process.Start();
 
-            _androidMessages.Add(new AndroidMessage("Adb server successfully restarted", _infoGUIStyle));
+            _androidMessages.Add(new AndroidMessage("Adb server successfully killed", _infoGUIStyle));
         } catch(Exception ex)
         {
             _androidMessages.Add(new AndroidMessage(ex.Message, _infoGUIStyle));
@@ -281,7 +281,7 @@ public class AndroidConsole : EditorWindow
                 string message = e.Data;
                 if(message == "error: protocol fault (couldn't read status): connection reset")
                 {
-                    message += ". TRY TO RESTART SERVER (maybe several times)";
+                    message += ". TRY TO KILL SERVER (maybe several times)";
                 }
 
                 _androidMessages.Add(new AndroidMessage(message, messageStyle));

@@ -55,7 +55,7 @@ public class AndroidConsole : EditorWindow
         _infoGUIStyle.normal.textColor = _settings.infoColor;
 
         _warningGUIStyle = new GUIStyle("textarea");
-        _warningGUIStyle.normal.textColor = _settings.wariningColor;
+        _warningGUIStyle.normal.textColor = _settings.warningColor;
 
         _errorGUIStyle = new GUIStyle("textarea");
         _errorGUIStyle.normal.textColor = _settings.errorColor;
@@ -255,7 +255,13 @@ public class AndroidConsole : EditorWindow
         {
             EditorApplication.delayCall += () =>
             {
-                if(_androidMessages.Count >= 250) _androidMessages.RemoveRange(0, 100);
+                if(_androidMessages.Count >= _settings.maxMessagesCount)
+                {
+                    int deleteCount = _settings.messagesBatchToDelete;
+                    if(deleteCount > _androidMessages.Count) deleteCount = _androidMessages.Count;
+
+                    _androidMessages.RemoveRange(0, deleteCount);
+                } 
 
                 GUIStyle messageStyle = _infoGUIStyle; 
 

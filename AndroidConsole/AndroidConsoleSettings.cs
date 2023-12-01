@@ -7,7 +7,7 @@ public class AndroidConsoleSettings : ScriptableObject
     public Color ConnectionLabelColor = Color.green;
     [Space]
     public Color infoColor = Color.gray;
-    public Color wariningColor = Color.yellow;
+    public Color warningColor = Color.yellow;
     public Color errorColor = Color.red;
     [Space]
     public int maxMessagesCount = 250;

@@ -15,7 +15,8 @@ MonoBehaviour:
   DisconnectionLabelColor: {r: 0.9339623, g: 0.2678533, b: 0.2678533, a: 1}
   ConnectionLabelColor: {r: 0.5101103, g: 0.8396226, b: 0.5101103, a: 1}
   infoColor: {r: 0.8301887, g: 0.8301887, b: 0.8301887, a: 1}
-  wariningColor: {r: 0.9056604, g: 0.68540174, b: 0.33663222, a: 1}
+  warningColor: {r: 0.9056604, g: 0.68540174, b: 0.33663222, a: 1}
   errorColor: {r: 0.93333334, g: 0.26666668, b: 0.26666668, a: 1}
   maxMessagesCount: 250
   messagesBatchToDelete: 100
+  reconnectOnRecompile: 1

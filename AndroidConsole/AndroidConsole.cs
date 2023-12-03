@@ -1,12 +1,11 @@
 #if UNITY_EDITOR
 using UnityEngine;
 using UnityEditor;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System;
-using UnityEditor.Compilation;
-using System.Threading.Tasks;
 using System.IO;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public class AndroidConsole : EditorWindow 
 {
@@ -15,25 +14,41 @@ public class AndroidConsole : EditorWindow
 
     private Vector2 _scrollPosition;
     private Process _process;
+
     private bool _isConnected;
     private bool _isSnaped;
     private bool _useEmulator;
     private bool _guiStylesCreated;
+
     private GUIStyle _connectedGUIStyle;
     private GUIStyle _disconnectedGUIStyle;
-
     private GUIStyle _infoGUIStyle;
     private GUIStyle _warningGUIStyle;
     private GUIStyle _errorGUIStyle;
+    private GUIStyle _adbOutputGUIStyle;
 
     private AndroidConsoleSettings _settings;
 
-    private List<AndroidMessage> _androidMessages = new List<AndroidMessage>();
+    private List<ConsoleMessage> _consoleMessages = new List<ConsoleMessage>();
+    public static AndroidConsole FindFirstInstance()
+    {
+        var windows = (AndroidConsole[])Resources.FindObjectsOfTypeAll(typeof(AndroidConsole));
+        if (windows.Length == 0)
+            return null;
+        return windows[0];
+    }
 
     [MenuItem("Window/AndroidConsole")]
     public static void ShowWindow()
     {
         GetWindow(typeof(AndroidConsole));
+    }
+    public void RestartWindow()
+    {
+        Disconnect();
+        _consoleMessages.Clear();
+        CreateGUIStyles();
+        Repaint();
     }
     private void CreateGUIStyles()
     {
@@ -42,23 +57,38 @@ public class AndroidConsole : EditorWindow
             fontSize = 20,
             alignment = TextAnchor.MiddleCenter
         };
-        _connectedGUIStyle.normal.textColor = _settings.ConnectionLabelColor;
+        _connectedGUIStyle.normal.textColor = _settings.connectionLabelColor;
 
         _disconnectedGUIStyle = new GUIStyle
         {
             fontSize = 20,
             alignment = TextAnchor.MiddleCenter
         };
-        _disconnectedGUIStyle.normal.textColor = _settings.DisconnectionLabelColor;
+        _disconnectedGUIStyle.normal.textColor = _settings.disconnectionLabelColor;
         
-        _infoGUIStyle = new GUIStyle("textarea");
+        _infoGUIStyle = new GUIStyle("textarea")
+        {
+            fontSize = _settings.fontSize
+        };
         _infoGUIStyle.normal.textColor = _settings.infoColor;
 
-        _warningGUIStyle = new GUIStyle("textarea");
+        _warningGUIStyle = new GUIStyle("textarea")
+        {
+            fontSize = _settings.fontSize
+        };
         _warningGUIStyle.normal.textColor = _settings.warningColor;
 
-        _errorGUIStyle = new GUIStyle("textarea");
+        _errorGUIStyle = new GUIStyle("textarea")
+        {
+            fontSize = _settings.fontSize
+        };
         _errorGUIStyle.normal.textColor = _settings.errorColor;
+
+        _adbOutputGUIStyle = new GUIStyle("textarea")
+        {
+            fontSize = _settings.fontSize
+        };
+        _adbOutputGUIStyle.normal.textColor = _settings.adbOutputColor;
 
         _guiStylesCreated = true;
     }
@@ -73,6 +103,7 @@ public class AndroidConsole : EditorWindow
     private void OnDisable() 
     {
         AssemblyReloadEvents.afterAssemblyReload -= OnCompilationFinished;
+        EditorApplication.quitting -= OnEditorQuit;
     }
 
     private void OnCompilationFinished()
@@ -103,9 +134,9 @@ public class AndroidConsole : EditorWindow
         {
             if (GUILayout.Button("Kill server", GUILayout.Width(85), GUILayout.Height(20)))
             {
-                if(EditorUtility.DisplayDialog("Restart server", "Are you sure you want to kill the adb server?", "Yes", "No"))
+                if(EditorUtility.DisplayDialog("Kill server", "Are you sure you want to kill the adb server?", "Yes", "No"))
                 {
-                    RestartServer();
+                    KillServer();
                 }
             }
         }
@@ -114,9 +145,9 @@ public class AndroidConsole : EditorWindow
         GUILayout.EndHorizontal();
 
         _scrollPosition = GUILayout.BeginScrollView(_scrollPosition);
-        for (int i = 0; i < _androidMessages.Count; i++)
+        for (int i = 0; i < _consoleMessages.Count; i++)
         {
-            GUILayout.TextArea(_androidMessages[i].text, _androidMessages[i].style);
+            GUILayout.TextArea(_consoleMessages[i].text, _consoleMessages[i].style);
         }
         GUILayout.EndScrollView();
 
@@ -132,7 +163,7 @@ public class AndroidConsole : EditorWindow
 
         if (GUILayout.Button("Clear"))
         {
-            _androidMessages.Clear();
+            _consoleMessages.Clear();
         }
 
         EditorGUI.BeginDisabledGroup(_process is not null);
@@ -154,7 +185,7 @@ public class AndroidConsole : EditorWindow
         EditorGUI.EndDisabledGroup();
         GUILayout.EndHorizontal();
     }
-    private void RestartServer()
+    private void KillServer()
     {
         try
         {
@@ -168,10 +199,10 @@ public class AndroidConsole : EditorWindow
             process.StartInfo.CreateNoWindow = true;
             process.Start();
 
-            _androidMessages.Add(new AndroidMessage("Adb server successfully killed", _infoGUIStyle));
+            _consoleMessages.Add(new ConsoleMessage("Adb server successfully killed", _infoGUIStyle));
         } catch(Exception ex)
         {
-            _androidMessages.Add(new AndroidMessage(ex.Message, _infoGUIStyle));
+            _consoleMessages.Add(new ConsoleMessage(ex.Message, _infoGUIStyle));
         }
     }
     private string GetAdbPath()
@@ -179,7 +210,7 @@ public class AndroidConsole : EditorWindow
         string adbPath = $@"{EditorApplication.applicationContentsPath}/PlaybackEngines/AndroidPlayer/SDK/platform-tools/adb.exe";
         if(!File.Exists(adbPath))
         {
-            _androidMessages.Add(new AndroidMessage("The android SDK is required for the android console to work", _errorGUIStyle));
+            _consoleMessages.Add(new ConsoleMessage("The android SDK is required for the android console to work", _errorGUIStyle));
             return string.Empty;
         }
 
@@ -203,7 +234,7 @@ public class AndroidConsole : EditorWindow
             _process.StartInfo.CreateNoWindow = true;
 
             _process.OutputDataReceived += OnOutputDataReceived;
-            _process.ErrorDataReceived += OnOutputDataReceived;
+            _process.ErrorDataReceived += OnErrorDataReceived;
 
             _process.Start();
             _process.BeginOutputReadLine();
@@ -216,7 +247,7 @@ public class AndroidConsole : EditorWindow
 
         } catch (Exception ex)
         {
-            _androidMessages.Add(new AndroidMessage(ex.Message, _errorGUIStyle));
+            _consoleMessages.Add(new ConsoleMessage(ex.Message, _errorGUIStyle));
         }
     }
     private async Task WaitForProcessExit()
@@ -232,6 +263,7 @@ public class AndroidConsole : EditorWindow
         _process = null;
         _isConnected = false;
         if(EditorPrefs.HasKey(ADB_PROCESS_KEY)) EditorPrefs.DeleteKey(ADB_PROCESS_KEY);
+        _consoleMessages.Add(new ConsoleMessage("Disconnect by timeout", _errorGUIStyle));
         Repaint();
     }
     private void Disconnect()
@@ -249,19 +281,37 @@ public class AndroidConsole : EditorWindow
     
         if(EditorPrefs.HasKey(ADB_PROCESS_KEY)) EditorPrefs.DeleteKey(ADB_PROCESS_KEY);
     }
+    private void CheckMaxMessages()
+    {
+        if(_consoleMessages.Count >= _settings.maxMessagesCount)
+        {
+            int deleteCount = _settings.messagesBatchToDelete;
+            if(deleteCount > _consoleMessages.Count) deleteCount = _consoleMessages.Count;
+
+            _consoleMessages.RemoveRange(0, deleteCount);
+        } 
+    }
+    private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(e.Data))
+        {
+            string message = e.Data;
+            if(message == "error: protocol fault (couldn't read status): connection reset")
+            {
+                message += ". TRY TO KILL SERVER (maybe several times)";
+            }
+
+            _consoleMessages.Add(new ConsoleMessage(message, _adbOutputGUIStyle));
+            Repaint();
+        }
+    }
     private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
     {
         if (!string.IsNullOrEmpty(e.Data))
         {
             EditorApplication.delayCall += () =>
             {
-                if(_androidMessages.Count >= _settings.maxMessagesCount)
-                {
-                    int deleteCount = _settings.messagesBatchToDelete;
-                    if(deleteCount > _androidMessages.Count) deleteCount = _androidMessages.Count;
-
-                    _androidMessages.RemoveRange(0, deleteCount);
-                } 
+                CheckMaxMessages();
 
                 GUIStyle messageStyle = _infoGUIStyle; 
 
@@ -277,29 +327,28 @@ public class AndroidConsole : EditorWindow
                 {
                     messageStyle = _errorGUIStyle;
                 }
-                
-                string message = e.Data;
-                if(message == "error: protocol fault (couldn't read status): connection reset")
-                {
-                    message += ". TRY TO KILL SERVER (maybe several times)";
-                }
 
-                _androidMessages.Add(new AndroidMessage(message, messageStyle));
+                _consoleMessages.Add(new ConsoleMessage(e.Data, messageStyle));
                 Repaint();
             };
         }
     }
+    private void OnDestroy() 
+    {
+        SettingsEditorView.IsRestartRequired = false;
+        Disconnect();
+    }
     private void OnEditorQuit()
     {
-        EditorPrefs.DeleteKey(ADB_PROCESS_KEY);
+        Disconnect();
     }
 }
 
-class AndroidMessage
+class ConsoleMessage
 {
     public string text;
     public GUIStyle style;
-    public AndroidMessage(string text, GUIStyle style)
+    public ConsoleMessage(string text, GUIStyle style)
     {
         this.text = text;   
         this.style = style;

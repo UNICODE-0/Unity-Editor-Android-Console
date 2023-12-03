@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18073fb0683f5c245acd6e0e8c432e6c, type: 3}
   m_Name: AndroidConsoleSettings
   m_EditorClassIdentifier: 
-  DisconnectionLabelColor: {r: 0.9339623, g: 0.2678533, b: 0.2678533, a: 1}
-  ConnectionLabelColor: {r: 0.5101103, g: 0.8396226, b: 0.5101103, a: 1}
-  infoColor: {r: 0.8301887, g: 0.8301887, b: 0.8301887, a: 1}
-  warningColor: {r: 0.9056604, g: 0.68540174, b: 0.33663222, a: 1}
+  infoColor: {r: 0.76862746, g: 0.76862746, b: 0.76862746, a: 1}
+  warningColor: {r: 0.90588236, g: 0.6862745, b: 0.3372549, a: 1}
   errorColor: {r: 0.93333334, g: 0.26666668, b: 0.26666668, a: 1}
+  adbOutputColor: {r: 0.6, g: 0.6, b: 1, a: 1}
+  disconnectionLabelColor: {r: 0.93333334, g: 0.26666668, b: 0.26666668, a: 1}
+  connectionLabelColor: {r: 0.50980395, g: 0.8392157, b: 0.50980395, a: 1}
+  fontSize: 12
   maxMessagesCount: 250
   messagesBatchToDelete: 100
   reconnectOnRecompile: 1

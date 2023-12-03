@@ -6,7 +6,7 @@ How to use?
 5. Press connect button
 
 If you want to receive logs from the Android emulator, run the emulator and select the "Use emulator" checkbox. <br>
-<b> If you have problems connecting to the emulator, try kill the server and reconnect, it may take several attempts! </b>
+<b> If you have problems with connecting to the emulator, try kill the server and reconnect, it may take several attempts! </b>
 
 ![1](https://github.com/UNICODE-0/Unity-Editor-Android-Console/assets/82433896/c8c09239-3a0a-4d27-98b9-97b9427f5f7a)
 

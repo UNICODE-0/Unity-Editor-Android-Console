@@ -295,13 +295,7 @@ public class AndroidConsole : EditorWindow
     {
         if (!string.IsNullOrEmpty(e.Data))
         {
-            string message = e.Data;
-            if(message == "error: protocol fault (couldn't read status): connection reset")
-            {
-                message += ". TRY TO KILL SERVER (maybe several times)";
-            }
-
-            _consoleMessages.Add(new ConsoleMessage(message, _adbOutputGUIStyle));
+            _consoleMessages.Add(new ConsoleMessage(e.Data, _adbOutputGUIStyle));
             Repaint();
         }
     }

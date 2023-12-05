@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "AndroidConsoleSettings", menuName = "SO/AndroidConsoleSettings", order = 0)]
@@ -25,3 +26,4 @@ public class AndroidConsoleSettings : ScriptableObject
         SettingsEditorView.TryShowRestartLabel();
     }
 }
+#endif

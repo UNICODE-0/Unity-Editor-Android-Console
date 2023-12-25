@@ -3,7 +3,7 @@ How to use?
 1. Install the Android Build Support module from unity hub
 2. Enable USB debugging on your device (Guide - https://developer.android.com/studio/debug/dev-options#:%7E:text=To%20enable%20USB%20debugging%2C%20toggle,Advanced%20%3E%20Developer%20Options%20%3E%20USB%20debugging)
 3. Connect the device to computer
-4. Lunch Android Console window in unity (Window -> AnroidConsole)
+4. Lunch Android Console window in unity (Window -> AndroidConsole)
 5. Press connect button
 
 If you want to receive logs from the Android emulator, run the emulator and select the "Use emulator" checkbox. <br>
